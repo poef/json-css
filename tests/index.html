@@ -1,0 +1,17 @@
+<!doctype html>
+<script src="../json-css.js"></script>
+<script>
+	var data = [];
+	for (var i=0; i<10000; i++) {
+		data.push({'foo':i});
+	}
+	
+	console.time('init');
+	jsonCSS.init(data);
+	console.timeEnd('init');
+
+
+	console.time('search');
+	data.search('search > *', 'foo[value=999]');
+	console.timeEnd('search');		
+</script>
