@@ -1,17 +1,53 @@
 <!doctype html>
 <script src="../json-css.js"></script>
-<script>
-	var data = [];
-	for (var i=0; i<10000; i++) {
-		data.push({'foo':i});
-	}
-	
-	console.time('init');
-	jsonCSS.init(data);
-	console.timeEnd('init');
+<body>
+	<script>
+		fetch('./books.json')
+		.then(function(response) {
+			return response.json();
+		}).then(function(data) {
+			window.data = data;
+			console.time('init');
+			jsonCSS.init(data);
+			console.timeEnd('init');
+
+			console.time('search');
+			var result = data.search('books > *', 'title[value~="Stand"]');
+			console.timeEnd('search');
+			console.log(result);
 
 
-	console.time('search');
-	data.search('search > *', 'foo[value=999]');
-	console.timeEnd('search');		
-</script>
+
+		});
+
+		var dataFoo = {
+			"title" : "foo",
+			"person" : [
+				{
+					"name" : {
+						"firstname"	: "John",
+						"lastname"	: "Doe",
+						"full"		: "John Doe"
+					}
+				},
+				{
+					"name" : {
+						"firstname"	: "Jane",
+						"lastname"	: "Roo",
+						"full"		: "Jane Roo"
+					}
+				}
+			]
+		};
+
+		var data2 = [];
+		for (var i=0; i<10000; i++ ) {
+			data2.push(dataFoo.person[0]);
+		}
+
+		console.time('init');
+		jsonCSS.init(data2);
+		console.timeEnd('init');
+
+	</script>
+</body>
