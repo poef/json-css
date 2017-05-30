@@ -1,10 +1,10 @@
 (function (root, factory) {
     if ( typeof define === 'function' && define.amd ) {
-        define(['buoy'], factory(root));
+        define([], factory(root));
     } else if ( typeof exports === 'object' ) {
-        module.exports = factory(require('buoy'));
+        module.exports = factory();
     } else {
-        root.myPlugin = factory(root, root.buoy);
+        root.jsonCSS = factory(root);
     }
 })(typeof global !== "undefined" ? global : this.window || this.global, function (root) {
 
@@ -12,56 +12,60 @@
 
 	var jsonCSS = {};
 
+    function htmlEntities(str) {
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+	
+	function safeTagName(name) {
+		return !name.match(/[^A-Za-z_-]/);
+	}
 
-    function renderData(node, value) {
-        var i;
-        if (typeof value === "string") {
-            node.setAttribute("value", value.toLowerCase());
-            node.setAttribute("type", "string");
-            node.simplyValue = value;
-        } else if (typeof value === "number") {
-            node.setAttribute("value", value);
-            node.setAttribute("type", "number");
-            node.simplyValue = value;
-        } else if (value === null) {
-            node.simplyValue = value;
-        } else if (typeof value === "object" && value.constructor === Array) {
-            for (i=0; i<value.length; i++) {
-                node.appendChild(renderNode("entry", value[i]));
+    /**
+     * This method builds up an array of tags, containing the data as attributes
+     * each open tag has an index attribute that links back to the original data
+     * through the ids list.
+     * the list argument is an array of tags, to be joined and then set with
+     * innerHTML, which is far faster in Edge/IE then using createElement.
+     */
+    function prerender(ids, list, value, name) {
+        if (!name) {
+            name = 'entry';
+        }
+		var realName = name;
+		if (!safeTagName(name)) {
+			name = 'entry';
+		}
+        var id = ids.length;
+        ids.push(value);
+        if ( Array.isArray(value) ) {
+            list.push('<'+name+' name="'+htmlEntities(realName)+'" index="'+id+'">');
+            for (var i=0, l=value.length; i<l; i++) {
+                prerender(ids,list,value[i]);
             }
-        } else if (typeof value === "object") { 
-            for (i in value) {
-                var newChild = renderNode(i, value[i]);
-                node.appendChild(newChild);
+            list.push('</'+name+'>');
+        } else if ( typeof value === 'object') {
+            if (!value) { // null
+                list.push('<'+name+' name="'+htmlEntities(realName)+'" value="" index="'+id+'"></'+name+'>');
+            } else {
+                list.push('<'+name+' name="'+htmlEntities(realName)+'" index="'+id+'">');
+                for (var i in value) {
+                    prerender(ids,list, value[i], i);
+                }
+                list.push('</'+name+'>');
             }
-        } else {
-            console.log("Hier kan ik niks mee");
-            console.log(typeof value);
-            console.log(value);
+        } else { // string, int, boolean
+            list.push('<'+name+' name="'+htmlEntities(realName)+'" value="'+htmlEntities(value)+'" index="'+id+'"></'+name+'>');
         }
-    };
+    }    
 
-    function renderNode(key, value) {
-        var node;
-        if (key.match(/[^A-Za-z_-]/)) {
-            node = document.createElement("node");
-        } else {
-            node = document.createElement(key);
-        }
-
-        if (value === null) {
-            node.setAttribute("type", "null");
-        } else if ((typeof value === "object") && value.constructor === Array) {
-            node.setAttribute("type", "array");
-        } else {
-            node.setAttribute("type", "object");
-        }
-
-        node.setAttribute("name", key);
-        renderData(node, value);
-        node.simplyValue = value;
-        return node;
-    };
+    /**
+     * Render a json structure as a HTML5 dom tree, so we can use querySelectorAll to search through it
+     */
+    function renderData(ids, node, value) {
+        var result = [];
+        prerender(ids, result, value);
+        node.innerHTML = result.join('');
+    }
 
     function filterNodes(nodes, query) {
         var result = [];
@@ -73,7 +77,7 @@
         return result;
     };
 
-    function searchNodes(tree, queries) {
+    function searchNodes(ids, tree, queries) {
         var baseQuery;
 
         if (typeof queries === "string") {
@@ -93,15 +97,24 @@
         
         var result = [];
         for (i=0; i<resultNodes.length; i++) {
+            var id = parseInt(resultNodes[i].getAttribute('index'));
             result.push({
                 key : resultNodes[i].getAttribute('name'),
-                value : resultNodes[i].simplyValue
+                value : ids[ id ]
             });
         }
         return result;            
     };
 
     jsonCSS.init = function(data) {
+        var ids = [];
+        if (!data.hasOwnProperty('searchElement')) {
+            var searchElement = document.createElement("search");
+        } else {
+            var searchElement = data.searchElement;
+        }
+        renderData(ids, searchElement, data);
+                        
         if (data.hasOwnProperty("search")) {
             return;
         }
@@ -109,10 +122,7 @@
         Object.defineProperty(data, "search", {
             get : function() {
                 return function() {
-                //    console.time("search");
                     if (!this.hasOwnProperty("searchElement")) {
-                        var searchElement = document.createElement("search");
-                        renderData(searchElement, this);
                         Object.defineProperty(this, "searchElement", {
                             get : function() {
                                 return searchElement;
@@ -121,8 +131,7 @@
                             configurable : false
                         });
                     }
-                    var result = searchNodes(this.searchElement, arguments);
-                //    console.timeEnd("search");
+                    var result = searchNodes(ids, this.searchElement, arguments);
                     return result;
                 }
             },
