@@ -84,6 +84,33 @@ The result set is a normal javascript array, so you can use the normal methods, 
     });
 ```
 
+## Special characters in property names
+
+If your JSON data contains properties with spaces, quotes or other characters that aren't valid in a HTML5 tag name, you must write the CSS selector slightly differently:
+
+With a property name "first name", instead of this:
+
+```
+    var results = data.search('persons > *', 'first name[value~="John"]');
+```
+
+Use this:
+
+```
+    var results = data.search('persons > *', '[name="first name"][value~="John"]');
+```
+
+For quotes, greater-than and smaller-than, use their HTML entity counterparts: &quot;, &gt; and &lt;.
+
+## Debugging
+
+Sometimes it isn't very clear what the selector should look like from just the JSON data. In that case it might help to see what the DOM tree looks like, that jsonCSS generates from your data.
+
+```
+    console.log(data.searchElement);
+```
+
+This will show you the entire DOM tree for your data in your browsers console. You can click through it in most browsers.
 
 # Why did we make this?
 
