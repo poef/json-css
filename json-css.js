@@ -64,6 +64,7 @@
     function renderData(ids, node, value) {
         var result = [];
         prerender(ids, result, value);
+        result.shift(result.pop()); // remove extra outer entry
         node.innerHTML = result.join('');
     }
 
@@ -107,24 +108,25 @@
     }
 
     jsonCSS.init = function(data) {
-        var searchElement, ids=[];
+        var ids=[];
         
         return {
+			dom: null,
             query: function() {
-                if (!searchElement) {
-                    searchElement = document.createElement('search');
-                    renderData(ids, searchElement, data);
+                if (!this.dom) {
+                    this.dom = document.createElement('search');
+                    renderData(ids, this.dom, data);
                 }                
-                return searchNodes(ids, searchElement, arguments);
+                return searchNodes(ids, this.dom, arguments);
             },
             update: function() {
-                if (!searchElement) {
-                    searchElement = document.createElement('search');
+                if (!this.dom) {
+                    this.dom = document.createElement('search');
                 }
-                renderData(ids, searchElement, data);
+                renderData(ids, this.dom, data);
             },
             destroy: function() {
-                searchElement = null;
+                this.dom = null;
                 ids = [];
             }
         };
