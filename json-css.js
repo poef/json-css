@@ -10,7 +10,7 @@
 
     'use strict';
 
-	var jsonCSS = {};
+    var jsonCSS = {};
 
     function htmlEntities(str) {
         return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -124,11 +124,11 @@
                 renderData(ids, searchElement, data);
             },
             destroy: function() {
-                delete searchElement;
-                delete ids;
+                searchElement = null;
+                ids = [];
             }
         };
     }
 
-	return jsonCSS;
+    return jsonCSS;
 });    
