@@ -8,15 +8,13 @@
 		}).then(function(data) {
 			window.data = data;
 			console.time('init');
-			jsonCSS.init(data);
+			window.searcher = jsonCSS.init(data);
 			console.timeEnd('init');
 
 			console.time('search');
-			var result = data.search('books > *', 'title[value~="Stand"]');
+			var result = searcher.query('books > *', 'title[value~="Stand"]');
 			console.timeEnd('search');
 			console.log(result);
-
-
 
 		});
 
@@ -46,7 +44,7 @@
 		}
 
 		console.time('init');
-		jsonCSS.init(data2);
+		window.searcher2 = jsonCSS.init(data2);
 		console.timeEnd('init');
 
 	</script>

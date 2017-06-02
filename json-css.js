@@ -10,15 +10,15 @@
 
     'use strict';
 
-	var jsonCSS = {};
+    var jsonCSS = {};
 
     function htmlEntities(str) {
         return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 	
-	function safeTagName(name) {
-		return !name.match(/[^A-Za-z_-]/);
-	}
+    function safeTagName(name) {
+    	return !name.match(/[^A-Za-z_-]/);
+    }
 
     /**
      * This method builds up an array of tags, containing the data as attributes
@@ -64,6 +64,7 @@
     function renderData(ids, node, value) {
         var result = [];
         prerender(ids, result, value);
+        result.shift(result.pop()); // remove extra outer entry
         node.innerHTML = result.join('');
     }
 
@@ -75,7 +76,7 @@
             }
         }
         return result;
-    };
+    }
 
     function searchNodes(ids, tree, queries) {
         var baseQuery;
@@ -104,41 +105,32 @@
             });
         }
         return result;            
-    };
-
-    jsonCSS.init = function(data) {
-        var ids = [];
-        if (!data.hasOwnProperty('searchElement')) {
-            var searchElement = document.createElement("search");
-        } else {
-            var searchElement = data.searchElement;
-        }
-        renderData(ids, searchElement, data);
-                        
-        if (data.hasOwnProperty("search")) {
-            return;
-        }
-
-        Object.defineProperty(data, "search", {
-            get : function() {
-                return function() {
-                    if (!this.hasOwnProperty("searchElement")) {
-                        Object.defineProperty(this, "searchElement", {
-                            get : function() {
-                                return searchElement;
-                            },
-                            enumerable : false,
-                            configurable : false
-                        });
-                    }
-                    var result = searchNodes(ids, this.searchElement, arguments);
-                    return result;
-                }
-            },
-            enumerable : false,
-            configurable : false
-        });
     }
 
-	return jsonCSS;
+    jsonCSS.init = function(data) {
+        var ids=[];
+        
+        return {
+			dom: null,
+            query: function() {
+                if (!this.dom) {
+                    this.dom = document.createElement('search');
+                    renderData(ids, this.dom, data);
+                }                
+                return searchNodes(ids, this.dom, arguments);
+            },
+            update: function() {
+                if (!this.dom) {
+                    this.dom = document.createElement('search');
+                }
+                renderData(ids, this.dom, data);
+            },
+            destroy: function() {
+                this.dom = null;
+                ids = [];
+            }
+        };
+    }
+
+    return jsonCSS;
 });    
