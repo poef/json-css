@@ -63,22 +63,39 @@ jsonCSS library.
 ### Get all books that contain the string 'Stand' in their title
 
 ```
-    var results = searcher.query('books > *','title[value*="Stand"');
+    var results = searcher.query('books > *','title[value*="Stand"]');
 ```
 
 ### Get at most 2 books that contain the string 'Stand' in their title
 
 ```
-    var results = searcher.query('books > *','title[value*="Stand"').slice(0,2);
+    var results = searcher.query('books > *','title[value*="Stand"]').slice(0,2);
 ```
 
 The result set is a normal javascript array, so you can use the normal methods, like slice, on it.
 
+### Get all books that contain the string 'Stand' in their title and are written by John Brunner
+
+```
+    var results = searcher.query('books > *',
+    'title[value*="Stand"]', 'author[value="John Brunner"]');
+```
+
+Each additional selector is an additional filter on the result set, so it is effectively an 'and' operation.
+
+### Get all books that contain the string 'Stand' in their title or are written by John Brunner
+
+```
+    var results = searcher.query('books > *',
+    'title[value*="Stand"], author[value="John Brunner"]');
+```
+
+It's a subtle difference with the previous query, but by combining two selectors into a single string, you tell the browser that either selector may match independently, so effectively it's an 'or' operation.
 
 ### Get all books that contain the string 'Stand', ordered by title
 
 ```
-    var results = searcher.query('books > *','title[value*="Stand"')
+    var results = searcher.query('books > *','title[value*="Stand"]')
     .sort( function(a,b) {
         return (a.title < b.title ? -1 : 1);
     });
