@@ -120,12 +120,6 @@
                 return searchNodes(ids, this.dom, arguments);
             },
             update: function() {
-                if (!this.dom) {
-                    this.dom = document.createElement('search');
-                }
-                renderData(ids, this.dom, data);
-            },
-            destroy: function() {
                 this.dom = null;
                 ids = [];
             }
