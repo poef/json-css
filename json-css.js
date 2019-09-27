@@ -16,7 +16,7 @@
         return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 	
-    function safeTagName(name) {
+    function isSafeTagName(name) {
     	return !name.match(/[^A-Za-z_-]/);
     }
 
@@ -32,7 +32,7 @@
             name = 'entry';
         }
 		var realName = name;
-		if (!safeTagName(name)) {
+		if (!isSafeTagName(name)) {
 			name = 'entry';
 		}
         var id = ids.length;
@@ -43,6 +43,8 @@
                 prerender(ids,list,value[i]);
             }
             list.push('</'+name+'>');
+		} else if ( typeof value === 'object' && ( value instanceof String || value instanceof Number || value instanceof Boolean) ) {
+            list.push('<'+name+' name="'+htmlEntities(realName)+'" value="'+htmlEntities(value)+'" index="'+id+'"></'+name+'>');
         } else if ( typeof value === 'object') {
             if (!value) { // null
                 list.push('<'+name+' name="'+htmlEntities(realName)+'" value="" index="'+id+'"></'+name+'>');
@@ -59,7 +61,7 @@
     }    
 
     /**
-     * Render a json structure as a HTML5 dom tree, so we can use querySelectorAll to search through it
+     * Renders a json structure as a HTML5 dom tree, so we can use querySelectorAll to search through it
      */
     function renderData(ids, node, value) {
         var result = [];
@@ -104,7 +106,7 @@
                 value : ids[ id ]
             });
         }
-        return result;            
+        return result;
     }
 
     jsonCSS.init = function(data) {
