@@ -1,5 +1,5 @@
 {
-  "name": "json-css",
+  "name": "json-css-search",
   "version": "1.0.0",
   "description": "Search through json data using CSS selectors, using the browser",
   "main": "json-css.js",
@@ -21,7 +21,7 @@
   "author": "Auke van Slooten",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/simplyedit/json-css/issues"
+    "url": "https://github.com/simplyedit/json-css-search/issues"
   },
-  "homepage": "https://github.com/simplyedit/json-css#readme"
+  "homepage": "https://github.com/simplyedit/json-css-search#readme"
 }
