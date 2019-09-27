@@ -2,50 +2,58 @@
 <script src="../json-css.js"></script>
 <body>
 	<script>
+
 		fetch('./books.json')
 		.then(function(response) {
 			return response.json();
 		}).then(function(data) {
 			window.data = data;
-			console.time('init');
+			console.time('init 1');
 			window.searcher = jsonCSS.init(data);
-			console.timeEnd('init');
+			console.timeEnd('init 1');
 
-			console.time('search');
+			console.time('search 1');
 			var result = searcher.query('books > *', 'title[value~="Stand"]');
-			console.timeEnd('search');
+			console.timeEnd('search 1');
 			console.log(result);
+			return true;
+		})
+		.then(function() {
+			var dataFoo = {
+				"title" : "foo",
+				"person" : [
+					{
+						"name" : {
+							"firstname"	: "John",
+							"lastname"	: "Doe",
+							"full"		: "John Doe"
+						}
+					},
+					{
+						"name" : {
+							"firstname"	: "Jane",
+							"lastname"	: "Roo",
+							"full"		: "Jane Roo"
+						}
+					}
+				]
+			};
 
+			var data2 = [];
+			for (var i=0; i<10000; i++ ) {
+				data2.push(dataFoo.person[0]);
+			}
+
+			data2[1].previous = data2[0];
+			data2[0].next = data2[1];
+			data2[0].name.parent = data2[0];
+			console.time('init 2');
+			window.searcher2 = jsonCSS.init(data2);
+			console.timeEnd('init 2');
+
+			console.time('search 2');
+			var result = searcher2.query('name');
+			console.timeEnd('search 2');
 		});
-
-		var dataFoo = {
-			"title" : "foo",
-			"person" : [
-				{
-					"name" : {
-						"firstname"	: "John",
-						"lastname"	: "Doe",
-						"full"		: "John Doe"
-					}
-				},
-				{
-					"name" : {
-						"firstname"	: "Jane",
-						"lastname"	: "Roo",
-						"full"		: "Jane Roo"
-					}
-				}
-			]
-		};
-
-		var data2 = [];
-		for (var i=0; i<10000; i++ ) {
-			data2.push(dataFoo.person[0]);
-		}
-
-		console.time('init');
-		window.searcher2 = jsonCSS.init(data2);
-		console.timeEnd('init');
-
 	</script>
 </body>

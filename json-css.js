@@ -27,7 +27,19 @@
      * the list argument is an array of tags, to be joined and then set with
      * innerHTML, which is far faster in Edge/IE then using createElement.
      */
-    function prerender(ids, list, value, name) {
+    function prerender(ids, list, value, name, seen) {
+        if (seen.has(value)) {
+            if (!this.jsonCyclicWarning) {
+                console.warn('json-css: cyclic data structure detected, skipping some values');
+                this.jsonCyclicWarning = true;
+            }
+            return;
+        }
+        var id = ids.length;
+        if (typeof value == 'object') {
+            seen.set(value, id);
+        }
+        ids.push(value);
         if (!name) {
             name = 'entry';
         }
@@ -35,12 +47,10 @@
 		if (!isSafeTagName(name)) {
 			name = 'entry';
 		}
-        var id = ids.length;
-        ids.push(value);
         if ( Array.isArray(value) ) {
             list.push('<'+name+' name="'+htmlEntities(realName)+'" index="'+id+'">');
             for (var i=0, l=value.length; i<l; i++) {
-                prerender(ids,list,value[i]);
+                prerender.call(this, ids,list,value[i],null,seen);
             }
             list.push('</'+name+'>');
 		} else if ( typeof value === 'object' && ( value instanceof String || value instanceof Number || value instanceof Boolean) ) {
@@ -51,7 +61,7 @@
             } else {
                 list.push('<'+name+' name="'+htmlEntities(realName)+'" index="'+id+'">');
                 for (var i in value) {
-                    prerender(ids,list, value[i], i);
+                    prerender.call(this, ids,list, value[i], i, seen);
                 }
                 list.push('</'+name+'>');
             }
@@ -63,9 +73,9 @@
     /**
      * Renders a json structure as a HTML5 dom tree, so we can use querySelectorAll to search through it
      */
-    function renderData(ids, node, value) {
+    function renderData(ids, node, value, seen) {
         var result = [];
-        prerender(ids, result, value);
+        prerender.call(this, ids, result, value, null, seen);
         result.shift(result.pop()); // remove extra outer entry
         node.innerHTML = result.join('');
     }
@@ -111,14 +121,15 @@
 
     jsonCSS.init = function(data) {
         var ids=[];
-        
+        var seen = new WeakMap();
+
         return {
 			dom: null,
             query: function() {
                 if (!this.dom) {
                     this.dom = document.createElement('search');
-                    renderData(ids, this.dom, data);
-                }                
+                    renderData.call(this, ids, this.dom, data, seen);
+                }
                 return searchNodes(ids, this.dom, arguments);
             },
             update: function() {
