@@ -36,7 +36,7 @@
             return;
         }
         var id = ids.length;
-        if (typeof value == 'object') {
+        if (value && typeof value == 'object') {
             seen.set(value, id);
         }
         ids.push(value);
