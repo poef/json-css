@@ -40,7 +40,7 @@
             seen.set(value, id);
         }
         ids.push(value);
-        if (!name) {
+        if (name === '' | name === null) {
             name = 'entry';
         }
 		var realName = name;
@@ -50,7 +50,7 @@
         if ( Array.isArray(value) ) {
             list.push('<'+name+' name="'+htmlEntities(realName)+'" index="'+id+'">');
             for (var i=0, l=value.length; i<l; i++) {
-                prerender.call(this, ids,list,value[i],null,seen);
+                prerender.call(this, ids,list,value[i],''+i,seen);
             }
             list.push('</'+name+'>');
 		} else if ( typeof value === 'object' && ( value instanceof String || value instanceof Number || value instanceof Boolean) ) {
@@ -90,6 +90,28 @@
         return result;
     }
 
+    function getPath(node) {
+        var parents = [];
+        while (node && node.hasAttribute('name')) {
+            parents.unshift(node.getAttribute('name'));
+            node = node.parentElement;
+        }
+        var path = parents.reduce(function(a, p) {
+            if (isSafeTagName(p)) {
+                a += '.' + p;
+            } else if (!isNaN(parseInt(p))) {
+                a += '[' + p + ']';
+            } else {
+                a += '["'+htmlEntities(p)+'"]';
+            }
+            return a;
+        },'')
+        if (path[0]==='.') {
+            path = path.substring(1);
+        }
+        return path;
+    }
+
     function searchNodes(ids, tree, queries) {
         var baseQuery;
 
@@ -113,8 +135,26 @@
             var id = parseInt(resultNodes[i].getAttribute('index'));
             result.push({
                 key : resultNodes[i].getAttribute('name'),
-                value : ids[ id ]
+                value : ids[ id ],
+                node: resultNodes[i]
             });
+        }
+        result.values = function() {
+            return result.map(function(e) {
+                return e.value;
+            });
+        };
+        result.paths = function() {
+            return result.map(function(e) {
+                return getPath(e.node);
+            });
+        };
+        result.tree = function() {
+            return result.reduce(function(t, e) {
+                var p = getPath(e.node);
+                t[p] = e.value;
+                return t;
+            },{});
         }
         return result;
     }

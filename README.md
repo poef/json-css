@@ -1,8 +1,22 @@
-# json-css
+# json-css-search
 
-querySelectorAll for JSON data
+json-css-search is a querySelectorAll for javascript data in the browser. 
 
-## How do I use it
+## Install
+
+### Browser using Unpkg CDN
+
+`<script src="https://unpkg.com/json-css-search@1.0.0/json-css.js"></script>`
+
+### Using NPM
+
+`npm install json-css-search`
+
+### Using GIT
+
+`git clone https://github.com/SimplyEdit/json-css-search.git`
+
+## Usage
 
 To use JSON-CSS on a set of data, you need to initialize it first:
 
@@ -16,9 +30,66 @@ Then you can call the method `query` on the data:
     var results = searcher.query('title[value~="Stand"]');
 ```
 
+This returns the results as an array of name / value objects, like this:
+
+```
+[
+    {
+        "key":"title",
+        "value":"Stand on Zanzibar",
+        "node": domNode
+    },
+    {
+        "key":"title",
+        "value":"Stand By Me (Special Edition)",
+        "node": domNode
+    }
+]
+```
+
+If you just want the values, without the key and domNode, call `values()` on the result:
+
+```
+    var values = searcher.query('title[value~="Stand"]').values();
+```
+
+Which returns:
+
+```
+    ["Stand on Zanzibar", "Stand By Me (Special Edition)"]
+```
+
+And if you want the jsonPath entries, call `paths()` on the result:
+
+```
+    var paths = searcher.query('title[value~="Stand"]').paths();
+```
+
+Which returns:
+
+```
+    ["books[711].title", "books[729].title"]
+```
+
+Or combine it and get the paths and values, by calling `tree()` on the result:
+
+```
+    var tree = searcher.query('title[value~="Stand"]').tree();
+```
+
+Which returns:
+
+```
+    {
+        "books[711].title": "Stand on Zanzibar", 
+        "books[729].title": "Stand By Me (Special Edition)"
+    }
+```
+
+
 ## When should I use this?
 
-If you have a relatively large dataset in JSON and want a quick and easy way to filter or select elements from it in javascript. 
+If you have a relatively large dataset and want a fast and simple way to filter or select elements from it in javascript.
 
 jsonCSS allows you to use your knowledge of CSS selectors to select elements from your JSON data set. Because CSS selector engines have been extremely optimized in browsers, this is also one of the fastest way to search through data in your browser. 
 
